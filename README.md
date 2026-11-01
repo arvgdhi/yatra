@@ -1,5 +1,5 @@
 # Yatra - Exoplanet Explorer
-> "Yatra" means "Voyager" in Sanskrit.
+> "Yatra" means "Voyage" in Sanskrit.
 
 A web application for exploring exoplanet data and analysing light curves. Two entry points share one pipeline
 (ingest → profile → analysis → visualisation → report):
