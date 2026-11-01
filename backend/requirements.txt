@@ -1,0 +1,19 @@
+# Runtime
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pydantic-settings>=2.2
+httpx>=0.27
+numpy>=1.26
+scipy>=1.11
+pandas>=2.1
+astropy>=6.0
+batman-package>=2.4.9
+astroquery>=0.4.7      # MAST observation search, product listing and download
+matplotlib>=3.8        # figures in the HTML report
+
+# Optional: MCMC uncertainty estimation for transit fits (analysis degrades gracefully without it)
+emcee>=3.1
+
+# Tests
+pytest>=8.0

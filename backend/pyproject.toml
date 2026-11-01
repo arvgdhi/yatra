@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "live: tests that call real public archives (deselected by default; run with `pytest -m live`)",
+    "slow: slower scientific recovery tests",
+]
