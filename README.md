@@ -18,7 +18,7 @@ Method selection is rule-based (a registry of modules with prerequisites). No la
 > mocked responses. They have **never been run against the live services**. Run `scripts/verify_archives.py` once
 > (see below) before relying on Explore. See [docs/TESTING.md](docs/TESTING.md) for exactly what was and was not measured.
 
-## Implemented vs planned
+## Implemented
 
 | Capability | Status |
 |---|---|
@@ -27,8 +27,6 @@ Method selection is rule-based (a registry of modules with prerequisites). No la
 | Background jobs, saved analyses, JSON / CSV / HTML exports with provenance | Implemented, tested |
 | NASA Exoplanet Archive / MAST / Exo.MAST clients, target pages | Implemented, **mock-tested only** |
 | Radial-velocity periodogram | **Planned** (shown as planned in the UI, not runnable) |
-| Transmission spectroscopy, direct imaging, astrometric orbits | **Planned** |
-| Accounts, multi-user isolation, public hosting hardening | Not implemented |
 
 ## Scientific integrity rules
 
