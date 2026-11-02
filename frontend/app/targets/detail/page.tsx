@@ -13,7 +13,7 @@ type Product = { filename: string; uri: string; size_bytes: number | null; descr
 const v = (x: Val, d = 5) => (x ? `${fmt(x.value, d)}${x.err_plus != null || x.err_minus != null ? ` (+${fmt(x.err_plus, 2)} / ${fmt(x.err_minus, 2)})` : ""} ${(x.unit ?? "").replace("R_earth", "R⊕").replace("R_sun", "R☉").replace("M_earth", "M⊕").replace("M_sun", "M☉")}` : "—");
 function Value({ value, digits = 5 }: { value: Val; digits?: number }) {
   if (!value) return <>—</>;
-  return <><span>{v(value, digits)}</span>{value.calculated && <span className="badge estimate" title={value.estimate?.uncertainty_note}>ML estimate</span>}</>;
+  return <><span>{v(value, digits)}</span>{value.calculated && <span className="badge estimate" title={value.estimate?.uncertainty_note}>ML estimate{value.estimate?.error_factor ? ` ×/÷ ${value.estimate.error_factor.toFixed(2)}` : ""}</span>}</>;
 }
 
 function Inner() {

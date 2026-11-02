@@ -13,6 +13,7 @@ with **mocked** archive responses. Nothing here was measured against real archiv
 | `test_transit_recovery.py` | Injected-transit recovery (period, depth, radius, two planets), noise-only rejection (fixed seeds), variability labelling |
 | `test_transit_vetting.py` | Odd/even, secondary eclipse, single-event, alias, catalogue matching, no "confirmed" label, no radius without stellar radius |
 | `test_archives.py` | NASA/MAST/Exo.MAST clients against `httpx.MockTransport` and a stubbed astroquery seam; caching and provenance; URI/size guards; offline mode; ADQL escaping |
+| `test_planet_estimator.py` | Archive values never overwritten; estimates flagged `calculated` with method, error factor and error basis; no estimate from fewer than two inputs; held-out error preferred over in-sample |
 | `test_api.py` | Upload → profile → analysis → export through the HTTP API; clients cannot supply catalogue data |
 
 A browser end-to-end run (Playwright against the built frontend and live backend, with an uploaded synthetic file) passed during
@@ -60,3 +61,11 @@ Script: `inject.py` (build scratch area); raw results were not stored in the rep
 * Fit: circular orbit, fixed limb darkening; Rp/Rs outliers up to +16 % occurred.
 * FITS reading is tested with synthetic FITS only, not real SPOC/Kepler files.
 * No load/concurrency testing; no deployment was built or run.
+
+## Planet-property estimator
+
+Unit tests check behaviour (labelling, no overwriting, error metadata), not accuracy. The committed model (`local-ridge-1`) has only
+**in-sample** error (log10 RMSE: radius 0.13, mass 0.41, duration 0.12, depth 0.13, i.e. typical factors ×1.35, ×2.6, ×1.3, ×1.3),
+which is optimistic. The training script now computes a held-out 80/20 error; it was smoke-tested on synthetic rows only and has not
+been run against the live archive here. Run it and commit the regenerated JSON to replace these figures. Mass estimates in particular
+are rough.
