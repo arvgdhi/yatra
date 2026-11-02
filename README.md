@@ -26,6 +26,7 @@ Method selection is rule-based (a registry of modules with prerequisites). No la
 | Transit photometry: cleaning, detrending, BLS search, vetting, batman fit, uncertainties | Implemented, tested on synthetic data |
 | Background jobs, saved analyses, JSON / CSV / HTML exports with provenance | Implemented, tested |
 | NASA Exoplanet Archive / MAST / Exo.MAST clients, target pages | Implemented, **mock-tested only** |
+| Local ML estimates for missing planet radius / mass / duration / depth (clearly labelled, with a typical-error factor) | Implemented; unit-tested, accuracy not yet validated on held-out data (see below) |
 | Radial-velocity periodogram | **Planned** (shown as planned in the UI, not runnable) |
 
 ## Scientific integrity rules
@@ -137,14 +138,18 @@ Results and measured performance: [docs/TESTING.md](docs/TESTING.md). Real-data 
 * Single-user design, SQLite storage.
 ## Local estimated parameters
 
-The app can fill a missing planet property with a clearly marked **ML estimate**. Archive measurements are never replaced, and an estimate is not evidence that a planet is confirmed or transiting. The portable model is committed at `backend/models/planet_property_model.json`, so normal installs infer only and never retrain.
+The app can fill a missing planet property (radius, mass, transit duration, transit depth) with a clearly marked **ML estimate**.
+Archive measurements are never replaced, an estimate needs at least two known inputs, and it is never evidence that a planet is
+confirmed or transiting. Orbital period is never estimated, so estimates cannot influence analysis or catalogue matching.
+Each estimate shows a typical-error factor (for example "×/÷ 1.35": the true value is usually within that factor).
 
-To deliberately refresh it on your own machine (with `numpy` installed), run:
+The portable model is committed at `backend/models/planet_property_model.json`, so normal installs only run inference.
 
-```bash
-cd backend
-python ../scripts/train_planet_property_model.py
-```
+**Retrain and validate (needs network, once):** `cd backend && python ../scripts/train_planet_property_model.py`. It fits on 80 % of the
+archive rows, scores on the unseen 20 % (fixed seed), prints the held-out error and R², then refits on all rows and stores
+`holdout_rmse_log10` in the JSON. **The currently committed model predates this step and only has in-sample error**, so its error
+factors are labelled "in-sample fit only, so optimistic". Retrain and commit the new JSON to get honest numbers.
 
-This downloads the NASA Exoplanet Archive composite table once, trains small ridge-regression models locally, and rewrites the versioned JSON artifact. Review and commit that file if you want the new model to ship with the project.
+## Repository hygiene
 
+`.gitignore` excludes `__pycache__`, local databases (`backend/data/`), `.env`, `node_modules`, `.next` and build info. Do not commit those.

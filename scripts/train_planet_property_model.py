@@ -51,10 +51,22 @@ def train(data: list[dict]) -> dict:
         z = (transformed - means) / scales
         # Mild ridge penalty keeps coefficients stable and makes the stored model portable.
         ridge = 0.25
-        weights = np.linalg.solve(z.T @ z + ridge * np.eye(z.shape[1]), z.T @ (y - y.mean()))
+
+        def solve(zz, yy):
+            return np.linalg.solve(zz.T @ zz + ridge * np.eye(zz.shape[1]), zz.T @ (yy - yy.mean()))
+
+        # Honest error: fit on 80 % of rows, score on the unseen 20 % (fixed seed). The stored model is then refit on all rows.
+        perm = np.random.default_rng(20261102).permutation(len(y))
+        cut = int(0.8 * len(y))
+        tr, te = perm[:cut], perm[cut:]
+        w_tr = solve(z[tr], y[tr])
+        pred_te = y[tr].mean() + z[te] @ w_tr
+        holdout_rmse = float(np.sqrt(np.mean((pred_te - y[te]) ** 2)))
+        holdout_r2 = float(1 - np.sum((pred_te - y[te]) ** 2) / np.sum((y[te] - y[te].mean()) ** 2))
+        weights = solve(z, y)
         prediction = y.mean() + z @ weights
-        result[key] = {"features": names, "medians": medians.tolist(), "means": means.tolist(), "scales": scales.tolist(), "weights": weights.tolist(), "intercept": float(y.mean()), "sample_count": int(len(y)), "rmse_log10": float(np.sqrt(np.mean((prediction - y) ** 2)))}
-    return {"schema_version": 1, "version": "local-ridge-1", "trained_at": datetime.now(timezone.utc).isoformat(), "source": "NASA Exoplanet Archive pscomppars (local training run)", "models": result}
+        result[key] = {"holdout_rmse_log10": holdout_rmse, "holdout_r2": holdout_r2, "holdout_n": int(len(te)),"features": names, "medians": medians.tolist(), "means": means.tolist(), "scales": scales.tolist(), "weights": weights.tolist(), "intercept": float(y.mean()), "sample_count": int(len(y)), "rmse_log10": float(np.sqrt(np.mean((prediction - y) ** 2)))}
+    return {"schema_version": 1, "version": "local-ridge-2", "trained_at": datetime.now(timezone.utc).isoformat(), "source": "NASA Exoplanet Archive pscomppars (local training run)", "models": result}
 
 
 if __name__ == "__main__":
@@ -67,3 +79,5 @@ if __name__ == "__main__":
     OUT.write_text(json.dumps(model, indent=2) + "\n", encoding="utf-8")
     summary = ", ".join(f"{key}: {fitted['sample_count']} rows" for key, fitted in model["models"].items())
     print(f"Wrote {OUT} ({summary})")
+    for key, fitted in model["models"].items():
+        print(f"  {key}: held-out RMSE {fitted['holdout_rmse_log10']:.3f} dex (x{10 ** fitted['holdout_rmse_log10']:.2f}), R^2 {fitted['holdout_r2']:.2f}, n={fitted['holdout_n']}")

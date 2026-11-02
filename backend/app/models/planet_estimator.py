@@ -51,6 +51,15 @@ def _features(planet: dict[str, Any], star: dict[str, Any] | None) -> dict[str, 
     }
 
 
+def _error(fitted: dict[str, Any]) -> tuple[float | None, str | None]:
+    """Typical log10 error of the model. Held-out error is preferred; the in-sample error is optimistic and is labelled as such."""
+    for key, basis in (("holdout_rmse_log10", "held-out data"), ("rmse_log10", "in-sample fit only, so optimistic; retrain to get a held-out error")):
+        v = fitted.get(key)
+        if isinstance(v, (int, float)) and math.isfinite(v) and v >= 0:
+            return float(v), basis
+    return None, None
+
+
 def enrich(planets: list[dict[str, Any]], star: dict[str, Any] | None) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
     """Fill supported missing numerical values, always with local-model provenance."""
     model = _model()
@@ -80,12 +89,18 @@ def enrich(planets: list[dict[str, Any]], star: dict[str, Any] | None) -> tuple[
                 continue
             if not math.isfinite(value) or value <= 0:
                 continue
+            err, basis = _error(fitted)
+            factor = 10 ** err if err is not None else None
+            note = "Approximate ML estimate; not a measurement or confirmation."
+            if factor is not None:
+                note += (f" Typical error about a factor of {factor:.2f} up or down (1 sigma, {basis}).")
             planet[output] = {
                 "value": value, "unit": _UNITS[field], "calculated": True,
                 "estimate": {
                     "method": "Local ridge regression", "model_version": model.get("version"),
                     "training_rows": fitted.get("sample_count"), "features_used": present,
-                    "uncertainty_note": "Approximate ML estimate; not a measurement or confirmation.",
+                    "error_log10": err, "error_factor": factor, "error_basis": basis,
+                    "uncertainty_note": note,
                 },
             }
             available = _features(planet, star)

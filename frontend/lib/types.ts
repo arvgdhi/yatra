@@ -164,7 +164,7 @@ export type Observation = {
   unsupported_reason: string | null;
 };
 
-export type Val = { value: number; unit: string | null; err_plus?: number | null; err_minus?: number | null; calculated?: boolean; estimate?: { method: string; model_version?: string; training_rows?: number; features_used?: number; uncertainty_note: string } } | null;
+export type Val = { value: number; unit: string | null; err_plus?: number | null; err_minus?: number | null; calculated?: boolean; estimate?: { method: string; model_version?: string; training_rows?: number; features_used?: number; error_log10?: number | null; error_factor?: number | null; error_basis?: string | null; uncertainty_note: string } } | null;
 
 export type TargetDetail = {
   key: string;
